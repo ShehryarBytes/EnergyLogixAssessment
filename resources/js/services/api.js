@@ -8,4 +8,15 @@ const api = axios.create({
     },
 });
 
+// Redirect to login on any 401 — session expired or unauthenticated
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            window.location.href = '/login';
+        }
+        return Promise.reject(error);
+    },
+);
+
 export default api;

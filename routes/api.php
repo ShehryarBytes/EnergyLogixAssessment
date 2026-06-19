@@ -7,7 +7,7 @@ use App\Http\Controllers\Api\FormulaController;
 use App\Http\Controllers\Api\SimulationController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('v1')->group(function () {
+Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
 
     // Formulas
     Route::get('/formulas', [FormulaController::class, 'index']);
