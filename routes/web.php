@@ -7,7 +7,8 @@ Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-// Catch-all: every other request loads the SPA shell
+// All other routes load the SPA shell — auth middleware ensures only
+// authenticated users reach it; unauthenticated requests redirect to /login.
 Route::get('/{any}', function () {
     return view('app');
-})->where('any', '^(?!login|logout).*$');
+})->where('any', '.*')->middleware('auth');

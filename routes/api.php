@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
 
+    // Current authenticated user — used by the SPA nav to display email and role
+    Route::get('/user', fn () => response()->json(auth()->user()->only('id', 'name', 'email', 'role')));
+
     // Formulas
     Route::get('/formulas', [FormulaController::class, 'index']);
     Route::post('/formulas', [FormulaController::class, 'store']);
