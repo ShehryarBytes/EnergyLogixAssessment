@@ -18,6 +18,10 @@ use RuntimeException;
 
 class FormulaController extends Controller
 {
+    private const RESERVED_VARIABLE_NAMES = [
+        'AnnualUsage', 'ContractValue', 'ContractLength', 'RiskScore',
+    ];
+
     public function __construct(
         private readonly FormulaParserService      $parser,
         private readonly DependencyResolverService $resolver,
@@ -42,6 +46,15 @@ class FormulaController extends Controller
     public function store(FormulaRequest $request): JsonResponse
     {
         $this->authorize('manage-formulas');
+
+        // Reject any calculated variable that shadows a system variable name
+        foreach ($request->variables ?? [] as $varDef) {
+            if (in_array($varDef['name'], self::RESERVED_VARIABLE_NAMES, true)) {
+                return response()->json([
+                    'message' => "'{$varDef['name']}' is a reserved system variable name and cannot be used as a calculated variable.",
+                ], 422);
+            }
+        }
 
         $variableNames = collect($request->variables ?? [])->pluck('name')->toArray();
 
@@ -122,7 +135,7 @@ class FormulaController extends Controller
      * Activate this formula version, archiving the current active one.
      * Requires manage-formulas gate (admin only).
      */
-    public function activate(string $id): JsonResponse
+    public function activate(string $id): JsonResponse|FormulaResource
     {
         $this->authorize('manage-formulas');
 
@@ -143,9 +156,7 @@ class FormulaController extends Controller
             ]);
         });
 
-        return response()->json(
-            new FormulaResource($formula->fresh()->load('variables'))
-        );
+        return new FormulaResource($formula->fresh()->load('variables'));
     }
 
     /**
@@ -164,6 +175,15 @@ class FormulaController extends Controller
             'variables.*.name'       => ['required', 'string'],
             'variables.*.expression' => ['required', 'string'],
         ]);
+
+        // Reject reserved system variable names before doing any parsing
+        foreach ($request->variables ?? [] as $varDef) {
+            if (in_array($varDef['name'], self::RESERVED_VARIABLE_NAMES, true)) {
+                return response()->json([
+                    'message' => "'{$varDef['name']}' is a reserved system variable name and cannot be used as a calculated variable.",
+                ], 422);
+            }
+        }
 
         $variableNames = collect($request->variables ?? [])->pluck('name')->toArray();
 

@@ -2,17 +2,19 @@
 
 namespace Tests\Feature;
 
-// use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Models\User;
 use Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class ExampleTest extends TestCase
 {
-    /**
-     * A basic test example.
-     */
-    public function test_the_application_returns_a_successful_response(): void
+    use RefreshDatabase;
+
+    public function test_authenticated_user_reaches_the_spa_shell(): void
     {
-        $response = $this->get('/');
+        $user = User::factory()->create(['role' => 'viewer']);
+
+        $response = $this->actingAs($user)->get('/');
 
         $response->assertStatus(200);
     }
