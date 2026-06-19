@@ -1,58 +1,110 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# EnergyLogix — Dynamic Commission Engine
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Project Overview
 
-## About Laravel
+The EnergyLogix Commission Engine is an internal administration tool that allows energy brokers to define, version, and activate commission formulas without touching application code. Administrators write formulas as human-readable expressions — for example `(AnnualUsage * 0.05) + (ContractLength * 100)` — and the system parses them into a safe Abstract Syntax Tree that is evaluated against any contract record. Every calculation produces a permanent, tamper-proof audit record showing the exact input values and step-by-step arithmetic used to arrive at the result.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+The system solves a real operational problem: commission structures change regularly in energy broking, but deploying code changes for every rate adjustment is slow, risky, and requires engineering involvement. This engine separates the formula logic from application code entirely. A formula can be drafted, validated, simulated against all existing contracts to preview the financial impact, and then activated with a single click — all without a deployment.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Tech Stack
 
-## Learning Laravel
+| Layer | Technology | Version |
+|---|---|---|
+| Backend | Laravel (PHP) | 13.x / PHP 8.3 |
+| Frontend | Vue 3 (Composition API) | 3.5 |
+| State management | Pinia | 3.0 |
+| Routing (SPA) | Vue Router | 4.6 |
+| CSS | Tailwind CSS | 3.4 |
+| Database | MySQL | 8.x |
+| Queue | Laravel database queue | — |
+| Build tool | Vite | 8.x |
+| Testing | Pest (PHPUnit) | 4.x |
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Setup Instructions
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+1. **Clone the repository and install PHP dependencies**
+   ```bash
+   git clone <repo-url> energylogix
+   cd energylogix
+   composer install
+   ```
 
-## Agentic Development
+2. **Install Node dependencies**
+   ```bash
+   npm install
+   ```
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+3. **Copy the environment file**
+   ```bash
+   cp .env.example .env
+   ```
+
+4. **Configure the database** — open `.env` and set your MySQL credentials:
+   ```
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=energylogix_commission
+   DB_USERNAME=root
+   DB_PASSWORD=
+   ```
+   Then create the database:
+   ```sql
+   CREATE DATABASE energylogix_commission;
+   ```
+
+5. **Generate the application key**
+   ```bash
+   php artisan key:generate
+   ```
+
+6. **Run migrations and seed test data**
+   ```bash
+   php artisan migrate --seed
+   ```
+   This creates all tables and seeds 15 sample contracts and two user accounts:
+
+   | Email | Password | Role |
+   |---|---|---|
+   | admin@energylogix.com | password | admin |
+   | viewer@energylogix.com | password | viewer |
+
+7. **Build frontend assets** (or `npm run dev` for hot-reload during development)
+   ```bash
+   npm run build
+   ```
+
+8. **Start the queue worker** — required for impact analysis simulations
+   ```bash
+   php artisan queue:work
+   ```
+
+9. **Start the development server**
+   ```bash
+   php artisan serve
+   ```
+   The application is available at **http://localhost:8000**.
+
+---
+
+## Running Tests
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+php artisan test
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+94 tests, 244 assertions — covers authentication, formula CRUD and versioning, commission calculation, simulation jobs, contract management, and all three formula engine services.
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Key Features
 
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- **Formula Builder** — write commission formulas as text expressions with optional calculated variables; live validation parses and reports errors before anything is saved
+- **Versioning and Activation** — every save is a new immutable version; activating a formula automatically archives the previous active one; only one formula can be active at any time
+- **Commission Calculator** — select any contract, calculate commission against the active formula, and see a step-by-step breakdown of every arithmetic operation that produced the result
+- **Impact Simulation** — run a dry-run of any draft formula against all contracts as a background job; a polling endpoint updates the UI when the job completes without blocking the HTTP response
+- **Audit Trail** — every commission calculation is permanently recorded with a snapshot of the contract values at calculation time and an ordered list of every step; records are never modified after creation
