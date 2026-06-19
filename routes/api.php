@@ -15,6 +15,8 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     // Formulas
     Route::get('/formulas', [FormulaController::class, 'index']);
     Route::post('/formulas', [FormulaController::class, 'store']);
+    // Standalone validate — used by the builder before a formula has been saved
+    Route::post('/formulas/validate', [FormulaController::class, 'validate']);
     Route::get('/formulas/{id}', [FormulaController::class, 'show']);
     Route::post('/formulas/{id}/activate', [FormulaController::class, 'activate']);
     Route::post('/formulas/{id}/validate', [FormulaController::class, 'validate']);
