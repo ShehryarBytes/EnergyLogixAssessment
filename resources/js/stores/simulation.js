@@ -31,20 +31,34 @@ export const useSimulationStore = defineStore('simulation', () => {
         simulationStatus.value = 'running';
         error.value            = null;
 
-        const { data } = await api.post('/simulation/run', { formula_id: formulaId });
-        startPolling(data.id);
+        try {
+            const { data } = await api.post('/simulation/run', { formula_id: formulaId });
+            startPolling(data.id);
+        } catch (err) {
+            simulationStatus.value = 'failed';
+            error.value = err.response?.data?.message || 'Failed to start simulation.';
+            throw err;
+        }
     }
 
     function startPolling(simId) {
         pollingIntervalId = setInterval(async () => {
             try {
-                const { data } = await api.get(`/simulation/${simId}`);
-                simulation.value = data;
+                // 'response' holds the full Axios response object
+                const { data: response } = await api.get(`/simulation/${simId}`);
 
-                if (data.status === 'complete') {
+                // Fix: Handle Laravel's Resource wrapping. It is usually inside response.data
+                const simData = response.data ? response.data : response;
+
+                simulation.value = simData;
+
+                // Normalize the string to catch 'complete', 'Complete', or 'completed'
+                const currentStatus = String(simData.status).toLowerCase();
+
+                if (currentStatus === 'complete' || currentStatus === 'completed') {
                     clearPolling();
                     simulationStatus.value = 'complete';
-                } else if (data.status === 'failed') {
+                } else if (currentStatus === 'failed') {
                     clearPolling();
                     simulationStatus.value = 'failed';
                     error.value = 'The simulation job failed. Check the queue worker is running.';

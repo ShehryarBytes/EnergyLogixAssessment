@@ -1,6 +1,5 @@
 <template>
     <div>
-        <!-- Page header -->
         <div class="mb-6">
             <h1 class="text-2xl font-bold text-gray-900">Impact Simulation</h1>
             <p class="text-sm text-gray-500 mt-1">
@@ -10,7 +9,6 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-            <!-- Left: Controls -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h2 class="text-sm font-semibold text-gray-900 mb-4">Simulation Controls</h2>
 
@@ -39,7 +37,6 @@
                             </option>
                         </select>
 
-                        <!-- Formula expression preview -->
                         <div v-if="selectedFormula" class="mt-3 bg-gray-50 rounded-md border border-gray-200 p-3">
                             <p class="text-xs text-gray-500 mb-1">Expression</p>
                             <p class="font-mono text-sm text-gray-900">{{ selectedFormula.expression }}</p>
@@ -60,9 +57,7 @@
                 </div>
             </div>
 
-            <!-- Right: Results -->
             <div>
-                <!-- Idle state -->
                 <div
                     v-if="simStore.simulationStatus === 'idle'"
                     class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full flex items-center justify-center"
@@ -72,7 +67,6 @@
                     </p>
                 </div>
 
-                <!-- Running / polling -->
                 <div
                     v-else-if="isRunning"
                     class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 flex flex-col items-center justify-center gap-4"
@@ -82,7 +76,6 @@
                     <p class="text-xs text-gray-500">Checking every two seconds for results.</p>
                 </div>
 
-                <!-- Failed -->
                 <div
                     v-else-if="simStore.simulationStatus === 'failed'"
                     class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600"
@@ -90,10 +83,8 @@
                     {{ simStore.error ?? 'The simulation failed. Please try again.' }}
                 </div>
 
-                <!-- Complete -->
                 <div v-else-if="simStore.simulationStatus === 'complete' && simStore.simulation">
 
-                    <!-- Stat cards 2×2 grid -->
                     <div class="grid grid-cols-2 gap-4 mb-4">
                         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                             <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Affected Contracts</p>
@@ -121,13 +112,11 @@
                         </div>
                     </div>
 
-                    <!-- Dry-run notice -->
                     <div class="rounded-md bg-blue-50 border border-blue-200 px-4 py-3 text-sm text-blue-700 mb-4">
                         This is a preview only — no commission records have been created or changed.
                         Contract calculations remain unchanged until you activate the formula.
                     </div>
 
-                    <!-- Activate button -->
                     <button
                         @click="handleActivate"
                         :disabled="activating"
@@ -178,7 +167,7 @@ async function handleRun() {
     try {
         await simStore.runSimulation(Number(selectedFormulaId.value));
     } catch (err) {
-        // runSimulation sets error state on the store
+        // Error state is now handled natively inside the store!
     }
 }
 
