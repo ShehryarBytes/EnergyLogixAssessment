@@ -33,7 +33,7 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth.js';
 import axios from 'axios';
@@ -41,14 +41,20 @@ import axios from 'axios';
 const router = useRouter();
 const authStore = useAuthStore();
 
-const navLinks = [
-    { to: '/',                 label: 'Home' },
-    { to: '/formulas',         label: 'Formulas' },
-    { to: '/formulas/builder', label: 'Builder' },
-    { to: '/commission',       label: 'Commission' },
-    { to: '/simulation',       label: 'Simulation' },
-    { to: '/audit',            label: 'Audit Trail' },
+const allNavLinks = [
+    { to: '/',                 label: 'Home',        adminOnly: false },
+    { to: '/formulas',         label: 'Formulas',    adminOnly: false },
+    { to: '/formulas/builder', label: 'Builder',     adminOnly: false },
+    { to: '/commission',       label: 'Commission',  adminOnly: false },
+    { to: '/simulation',       label: 'Simulation',  adminOnly: true  },
+    { to: '/audit',            label: 'Audit Trail', adminOnly: false },
 ];
+
+const navLinks = computed(() =>
+    authStore.user?.role === 'admin'
+        ? allNavLinks
+        : allNavLinks.filter(l => !l.adminOnly)
+);
 
 onMounted(() => authStore.fetchUser());
 

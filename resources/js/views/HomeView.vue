@@ -20,11 +20,22 @@
 </template>
 
 <script setup>
-const cards = [
-    { to: '/formulas',         title: 'Formulas',            description: 'Create and manage commission formula versions.' },
-    { to: '/formulas/builder', title: 'Formula Builder',     description: 'Build and validate a new formula expression.' },
-    { to: '/commission',       title: 'Commission Calculator', description: 'Run a commission calculation against a contract.' },
-    { to: '/simulation',       title: 'Impact Simulation',   description: 'Preview how a formula change affects all contracts.' },
-    { to: '/audit',            title: 'Audit Trail',         description: 'Review all historical commission calculations.' },
+import { computed } from 'vue';
+import { useAuthStore } from '@/stores/auth.js';
+
+const authStore = useAuthStore();
+
+const allCards = [
+    { to: '/formulas',         title: 'Formulas',              description: 'Create and manage commission formula versions.',           adminOnly: false },
+    { to: '/formulas/builder', title: 'Formula Builder',       description: 'Build and validate a new formula expression.',            adminOnly: false },
+    { to: '/commission',       title: 'Commission Calculator', description: 'Run a commission calculation against a contract.',        adminOnly: false },
+    { to: '/simulation',       title: 'Impact Simulation',     description: 'Preview how a formula change affects all contracts.',     adminOnly: true  },
+    { to: '/audit',            title: 'Audit Trail',           description: 'Review all historical commission calculations.',          adminOnly: false },
 ];
+
+const cards = computed(() =>
+    authStore.user?.role === 'admin'
+        ? allCards
+        : allCards.filter(c => !c.adminOnly)
+);
 </script>

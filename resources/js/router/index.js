@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { useAuthStore } from '@/stores/auth.js';
 
 // Auth is enforced server-side (Laravel's auth middleware on the catch-all web route).
 // The SPA only loads once the user is authenticated, so these routes need no client-side guard.
@@ -43,6 +44,29 @@ const routes = [
 const router = createRouter({
     history: createWebHistory(),
     routes,
+});
+
+const adminOnlyRoutes = ['/simulation'];
+
+router.beforeEach(async (to) => {
+    if (!adminOnlyRoutes.includes(to.path)) return true;
+
+    const authStore = useAuthStore();
+
+    // User may not be loaded yet on first navigation — wait for it
+    if (!authStore.user) {
+        try {
+            await authStore.fetchUser();
+        } catch {
+            return '/';
+        }
+    }
+
+    if (authStore.user?.role !== 'admin') {
+        return '/';
+    }
+
+    return true;
 });
 
 export default router;
